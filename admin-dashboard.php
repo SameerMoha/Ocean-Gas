@@ -95,6 +95,7 @@
         <a href="#"><i class="fas fa-box"></i> Stock</a>
         <a href="#"><i class="fas fa-shopping-cart"></i> Sales</a>
         <a href="procurement.html"><i class="fas fa-truck"></i> Procurement</a>
+        <a href="users.php"><i class="fas fa-users"></i> Manage Users</a> <!-- Added Button -->
         <a href="#"><i class="fas fa-cogs"></i> Settings</a>
         <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
