@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Procurement Process - LakeGas Enterprise Portal</title>
+  <link rel="stylesheet" href="procurement-style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="top">
+      <h1>Procurement Process</h1>
+      <button onclick="window.history.back();" class="btn">Back</button>
+    </div>
+
+    <!-- Inventory Overview -->
+    <div class="inventory-summary">
+      <div class="inventory-card">
+        <h3>Current Inventory</h3>
+        <div id="inventoryList" class="inventory-items"></div>
+      </div>
+    </div>
+
+    <!-- Purchase Process Flow -->
+    <div class="procurement-flow">
+      <!-- Step 1: Create Purchase Request -->
+      <div class="flow-card">
+        <h3>Create Purchase Request</h3>
+        <form id="purchaseForm">
+          <div class="form-group">
+            <label>Select Item:</label>
+            <select id="itemSelect" class="form-control" required>
+              <option value="">Choose item...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Select Supplier:</label>
+            <select id="supplierSelect" class="form-control" required>
+              <option value="">Choose supplier...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Quantity Needed:</label>
+            <input type="number" id="quantity" class="form-control" min="1" required />
+          </div>
+
+          <button type="submit" class="btn primary">Submit Request</button>
+        </form>
+      </div>
+
+      <!-- Step 2: Approval Process -->
+      <div class="flow-card">
+        <h3>Pending Approvals</h3>
+        <div id="approvalList" class="approval-items"></div>
+      </div>
+    </div>
+
+    <!-- Purchase History -->
+    <div class="transactions">
+      <h2>Purchase History</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Supplier</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="purchaseHistory"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Inventory Data
+    let inventory = [
+      { id: 1, name: '50kg Gas Cylinders', quantity: 150, reorderLevel: 50 },
+      { id: 2, name: 'Propane Tanks', quantity: 200, reorderLevel: 75 },
+      { id: 3, name: 'Butane Containers', quantity: 100, reorderLevel: 30 }
+    ];
+
+    // Suppliers Data
+    const suppliers = [
+      { id: 1, name: 'GasTech Suppliers', rating: '4.8' },
+      { id: 2, name: 'SafeCylinder Co.', rating: '4.5' },
+      { id: 3, name: 'EnergyDirect Ltd', rating: '4.6' }
+    ];
+
+    // Purchase Requests
+    let purchaseRequests = [];
+
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', () => {
+      populateInventory();
+      populateItems();
+      populateSuppliers();
+      loadPurchaseHistory();
+    });
+
+    // Form Submission
+    document.getElementById('purchaseForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const itemValue = document.getElementById('itemSelect').value;
+      const supplier = document.getElementById('supplierSelect').value;
+      const quantity = document.getElementById('quantity').value;
+
+      if (!itemValue || !supplier || !quantity) {
+        showError('Please fill all fields');
+        return;
+      }
+
+      const newRequest = {
+        id: Date.now(),
+        item: parseInt(itemValue), // storing item id
+        supplier,
+        quantity,
+        status: 'Pending Approval',
+        date: new Date().toLocaleDateString()
+      };
+
+      purchaseRequests.push(newRequest);
+      updateApprovalList();
+      updatePurchaseHistory();
+      e.target.reset();
+    });
+
+    // Inventory Management Functions
+    function updateInventory(itemId, quantity) {
+      const item = inventory.find(i => i.id === itemId);
+      if (item) {
+        item.quantity += quantity;
+        populateInventory();
+      }
+    }
+
+    function populateInventory() {
+      const container = document.getElementById('inventoryList');
+      container.innerHTML = inventory.map(item => `
+        <div class="inventory-item">
+          <span>${item.name}</span>
+          <div class="stock-level">
+            <span class="quantity">${item.quantity}</span>
+            <span class="reorder">(Reorder at ${item.reorderLevel})</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Populate the Items dropdown from the inventory
+    function populateItems() {
+      const select = document.getElementById('itemSelect');
+      select.innerHTML = '<option value="">Choose item...</option>' +
+        inventory.map(item => `<option value="${item.id}">${item.name}</option>`).join('');
+    }
+
+    function populateSuppliers() {
+      const select = document.getElementById('supplierSelect');
+      select.innerHTML = '<option value="">Choose supplier...</option>' +
+        suppliers.map(s => `<option value="${s.name}">${s.name} (⭐ ${s.rating})</option>`).join('');
+    }
+
+    function updateApprovalList() {
+      const container = document.getElementById('approvalList');
+      container.innerHTML = purchaseRequests
+        .filter(r => r.status === 'Pending Approval')
+        .map(request => {
+          const itemObj = inventory.find(i => i.id === request.item);
+          const itemName = itemObj ? itemObj.name : 'Unknown Item';
+          return `
+            <div class="approval-item">
+              <div>
+                <strong>${itemName}</strong><br>
+                ${request.supplier} | Qty: ${request.quantity}
+              </div>
+              <div class="approval-actions">
+                <button class="btn success" onclick="approveRequest(${request.id})">Approve</button>
+                <button class="btn danger" onclick="rejectRequest(${request.id})">Reject</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+    }
+
+    function updatePurchaseHistory() {
+      const tbody = document.getElementById('purchaseHistory');
+      tbody.innerHTML = purchaseRequests.map(request => {
+        const itemObj = inventory.find(i => i.id === request.item);
+        const itemName = itemObj ? itemObj.name : 'Unknown Item';
+        return `
+          <tr>
+            <td>${itemName}</td>
+            <td>${request.supplier}</td>
+            <td>${request.quantity}</td>
+            <td class="status ${request.status.toLowerCase().replace(' ', '-')}">
+              ${request.status}
+            </td>
+            <td>${request.date}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function approveRequest(id) {
+      const request = purchaseRequests.find(r => r.id === id);
+      if (request) {
+        request.status = 'Approved';
+        const itemObj = inventory.find(i => i.id === request.item);
+        if (itemObj) {
+          updateInventory(itemObj.id, parseInt(request.quantity));
+        }
+        updateApprovalList();
+        updatePurchaseHistory();
+      }
+    }
+
+    function rejectRequest(id) {
+      const request = purchaseRequests.find(r => r.id === id);
+      if (request) {
+        request.status = 'Rejected';
+        updateApprovalList();
+        updatePurchaseHistory();
+      }
+    }
+
+    function loadPurchaseHistory() {
+      updatePurchaseHistory();
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+  </script>
+</body>
+</html>
