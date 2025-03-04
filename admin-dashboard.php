@@ -101,7 +101,7 @@
     </div>
     <div class="content">
         <div class="topbar">
-            <h1>Welcome, <?php echo htmlspecialchars($adminName); ?></h1>
+            <h1>Welcome Admin, <?php echo htmlspecialchars($adminName); ?></h1>
             <div class="topbar-icons">
                 <i class="fas fa-envelope"></i>
                 <i class="fas fa-bell"></i>

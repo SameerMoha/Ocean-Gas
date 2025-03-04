@@ -11,17 +11,17 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-if (isset($_POST['login'])) {
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
-    $role = $_POST['role']; // Get selected role
 
     if (empty($username) || empty($password)) {
-        $error = "Please fill in all required fields.";
+        $error = "Please enter both username and password.";
     } else {
         // Verify user credentials
-        $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ? AND role = ?");
-        $stmt->bind_param("ss", $username, $role);
+        $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
         $stmt->execute();
         $stmt->store_result();
 
@@ -30,11 +30,12 @@ if (isset($_POST['login'])) {
             $stmt->fetch();
 
             if (password_verify($password, $dbPassword)) {
+                // Store user info in session
                 session_regenerate_id(true);
                 $_SESSION['username'] = $dbUsername;
                 $_SESSION['role'] = $dbRole;
 
-                // Redirect to respective dashboards
+                // Redirect to the correct dashboard
                 switch ($dbRole) {
                     case 'admin':
                         header("Location: admin-dashboard.php");
@@ -43,7 +44,7 @@ if (isset($_POST['login'])) {
                         header("Location: sales.html");
                         break;
                     case 'procurement':
-                        header("Location: procurement-dashboard.php");
+                        header("Location: procurement.html");
                         break;
                     case 'support':
                         header("Location: support-dashboard.php");
@@ -53,12 +54,30 @@ if (isset($_POST['login'])) {
                 }
                 exit();
             } else {
-                $error = "Invalid username or password.";
+                $error = "Incorrect username or password.";
             }
         } else {
-            $error = "Invalid username or password.";
+            $error = "Incorrect username or password.";
         }
         $stmt->close();
+    }
+}
+
+// If already logged in, redirect to the dashboard
+if (isset($_SESSION['role'])) {
+    switch ($_SESSION['role']) {
+        case 'admin':
+            header("Location: admin-dashboard.php");
+            exit();
+        case 'sales':
+            header("Location: sales.html");
+            exit();
+        case 'procurement':
+            header("Location: procurement.html");
+            exit();
+        case 'support':
+            header("Location: support-dashboard.php");
+            exit();
     }
 }
 
@@ -69,7 +88,7 @@ $conn->close();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Select Role</title>
+    <title>Staff Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         body {
@@ -81,7 +100,7 @@ $conn->close();
             height: 100vh;
             margin: 0;
         }
-        .role-container {
+        .login-container {
             width: 400px;
             background: #fff;
             padding: 30px;
@@ -89,44 +108,17 @@ $conn->close();
             box-shadow: 0 0 15px rgba(0,0,0,0.2);
             text-align: center;
         }
-        .role-container h2 {
+        .login-container h2 {
             margin-bottom: 20px;
         }
-        .role-buttons {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .role-buttons button {
-            flex: 1;
-            background-color: #007BFF;
-            color: white;
-            padding: 10px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .role-buttons button:hover {
-            background-color: #0056b3;
-        }
-        .login-form {
-            display: none;
-            margin-top: 20px;
-        }
-        .login-form input {
+        .login-container input {
             width: 100%;
             padding: 10px;
             margin-top: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        .login-form button {
+        .login-container button {
             background-color: #28a745;
             color: white;
             padding: 10px;
@@ -142,36 +134,19 @@ $conn->close();
             margin-top: 10px;
         }
     </style>
-    <script>
-        function showLoginForm(role) {
-            document.getElementById('roleTitle').innerText = role.charAt(0).toUpperCase() + role.slice(1) + " Login";
-            document.getElementById('roleInput').value = role;
-            document.getElementById('loginForm').style.display = 'block';
-        }
-    </script>
 </head>
 <body>
-    <div class="role-container">
-        <h2>Select Your Role</h2>
-        <div class="role-buttons">
-            <button onclick="showLoginForm('admin')"><i class="fas fa-user-shield"></i> Admin</button>
-            <button onclick="showLoginForm('sales')"><i class="fas fa-chart-line"></i> Sales</button>
-            <button onclick="showLoginForm('procurement')"><i class="fas fa-shopping-cart"></i> Procurement</button>
-            <button onclick="showLoginForm('support')"><i class="fas fa-headset"></i> Support</button>
-        </div>
-
-        <div class="login-form" id="loginForm">
-            <h2 id="roleTitle"></h2>
-            <?php if (isset($error)) { echo "<p class='error'>$error</p>"; } ?>
-            <form method="POST" action="">
-                <input type="hidden" name="role" id="roleInput">
-                <label for="username">Username:</label>
-                <input type="text" name="username" required>
-                <label for="password">Password:</label>
-                <input type="password" name="password" required>
-                <button type="submit" name="login">Login</button>
-            </form>
-        </div>
+    <div class="login-container">
+        <h2>Staff Login</h2>
+        <?php if (isset($error)) { echo "<p class='error'>$error</p>"; } ?>
+        <form method="POST" action="">
+            <label for="username">Username:</label>
+            <input type="text" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+            <button type="submit">Login</button>
+            Forgot Password? <a href="forgot-password.php"> click here </a>
+        </form>
     </div>
 </body>
 </html>

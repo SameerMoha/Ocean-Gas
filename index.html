@@ -50,10 +50,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background-color: #333;
-            padding: 15px 20px;
+            background-color:  rgba(44, 62, 80, 0.8);
+            padding: 1rem 3rem;
             position: sticky;
             top: 0;
+            z-index: 50;
         }
         .navbar img {
             height: 50px;
@@ -82,17 +83,21 @@
         /* Dropdown Styling */
         .dropdown {
             position: relative;
+            z-index: 102;
         }
         .dropdown-menu {
-            display: none;
+            display: none ;
             position: absolute;
             top: 100%;
             left: 0;
-            background-color: #444;
+            background-color: rgba(44, 62, 80, 0.8);
             min-width: 150px;
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            z-index: 100;
+            z-index: 1000;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
         }
         .dropdown-menu a {
             display: block;
@@ -105,6 +110,9 @@
         }
         .dropdown:hover .dropdown-menu {
             display: block;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
         }
 
     /* Ensure content is pushed below navbar */
@@ -134,6 +142,7 @@
       position: relative;
       padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
       height: 0;
+      z-index: 10;
       overflow: hidden;
       max-width: 100%;
       background: black;
@@ -144,6 +153,7 @@
       left: 0;
       width: 100%;
       height: 100%;
+      z-index: 1;
     }
 
     /* Fit Image Below Navbar */
@@ -357,7 +367,6 @@
       <li><a href="about.html">About</a></li>
       <li><a href="contact.html">Contact</a></li>
       
-  
       <li class="dropdown">
         <a href="#">Login ↓</a>
         <div class="dropdown-menu">
@@ -388,63 +397,6 @@
       </div>
     </div>
   </section>
-
-  <!-- Admin Login Form -->
-  <div id="adminLoginForm" class="login-form" style="display: none;">
-    <h2>Admin Login</h2>
-    <form id="adminForm">
-      <div class="form-group">
-        <label for="adminName">&#32;Name:&#32;</label>
-        <input
-          type="text"
-          id="adminName"
-          class="form-control"
-          placeholder="John Doe"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label for="adminPassword">Password:</label>
-        <input
-          type="password"
-          id="adminPassword"
-          class="form-control"
-          placeholder="123"
-          required
-        />
-      </div>
-      <button type="submit" class="btn primary">Login</button>
-    </form>
-  </div>
-
-  <!-- General User Login Form -->
-  <div id="generalLoginForm" class="login-form" style="display: none;">
-    <h2>General User Login</h2>
-    <form id="generalForm">
-      <div class="form-group">
-        <label for="generalName">Name:</label>
-        <input
-          type="text"
-          id="generalName"
-          class="form-control"
-          placeholder="Jane Doe"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label for="generalPassword">Password:</label>
-        <input
-          type="password"
-          id="generalPassword"
-          class="form-control"
-          placeholder="456"
-          required
-        />
-      </div>
-      <button type="submit" class="btn primary">Login</button>
-    </form>
-  </div>
-  <!-- NOTE: Removed the extra closing </div> here -->
 
   <!-- "A Better Alternative" Section -->
   <section class="flex items-center justify-center bg-white py-12">
@@ -625,6 +577,11 @@
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+  return new bootstrap.Dropdown(dropdownToggleEl)
+})
 </script>
 
   
