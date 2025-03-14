@@ -330,32 +330,23 @@
     display: none; /* Hidden by default */
     position: fixed;
     bottom: 20px;
-    left: 20px; /* Changed from right to left */
-    z-index: 100;
-    font-size: 20px; /* Bigger arrow */
-    border: none;
-    outline: none;
-    background-color: #007bff;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: #ad0d32; /* Purple color */
     color: white;
+    border: none;
+    border-radius: 50%; /* Makes it circular */
+    font-size: 24px;
     cursor: pointer;
-    padding: 8px 10px; /* Adjusted padding */
-    border-radius: 10px;
-    width: 45px; /* Fits content */
-    height: auto;
-    text-align: center;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    transition: 0.3s;
-}
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s, transform 0.3s;
+  }
 
-#backToTopBtn .text {
-    font-size: 10px; /* Smaller text */
-    display: block; /* Ensures text appears below */
-    margin-top: 2px;
-}
-
-#backToTopBtn:hover {
-    background-color: #F24E43;
-}
+  #backToTopBtn:hover {
+    background-color: #00089a; /* Darker purple */
+    transform: scale(1.1);
+  }
   </style>
 </head>
 <body>
@@ -370,8 +361,8 @@
       <li class="dropdown">
         <a href="#">Login ↓</a>
         <div class="dropdown-menu">
-            <a href="login.php">Staff Login</a>
-            <a href="user-login.php"> Login</a>
+            <a href="staff-login.php">Staff Login</a>
+            <a href="customer-login.php">Customer Login</a>
         </div>
     </li>
     </ul>
@@ -507,81 +498,47 @@
      <p>&copy; 2025 Ocean Gas Company. All Rights Reserved.</p>
  </footer>
  <button onclick="scrollToTop()" id="backToTopBtn" title="Go to top">
-  ↑ <br> <span class="text">Back to Top</span>
+  ↑ <br> <span class="text"></span>
 </button>
   <!-- Script Section -->
   <script>
-    // Show admin or general login forms
-    document.getElementById('adminBtn')?.addEventListener('click', function () {
-      document.getElementById('adminLoginForm').style.display = 'block';
-      document.getElementById('generalLoginForm').style.display = 'none';
-    });
-
-    document.getElementById('generalBtn')?.addEventListener('click', function () {
-      document.getElementById('generalLoginForm').style.display = 'block';
-      document.getElementById('adminLoginForm').style.display = 'none';
-    });
-
-    // Handle admin login
-    document.getElementById('adminForm')?.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const name = document.getElementById('adminName').value;
-      const password = document.getElementById('adminPassword').value;
-      if (name === 'John Doe' && password === '123') {
-        window.location.href = 'admin-dashboard.html';
-      } else {
-        alert('Invalid admin credentials. Please try again.');
-      }
-    });
-
-    // Handle general user login
-    document.getElementById('generalForm')?.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const name = document.getElementById('generalName').value;
-      const password = document.getElementById('generalPassword').value;
-      if (name === 'Jane Doe' && password === '456') {
-        window.location.href = 'sales.html';
-      } else {
-        alert('Invalid general user credentials. Please try again.');
-      }
-    });
-
+  
     // Counter animation
-    let count = 0;
+    let count = 17004565; // Starting count
     function incrementCounter() {
       const counterElement = document.getElementById("counter");
-      const target = 278000;
+      const target = 17100000; // Target count
+      const increment = Math.floor((target - count) / 100); // Adjust speed
       const interval = setInterval(() => {
         if (count < target) {
-          count += Math.floor(Math.random() * 3000) + 500;
-          if (count > target) count = target;
+          count += increment;
           counterElement.textContent = count.toLocaleString();
         } else {
           clearInterval(interval);
+          counterElement.textContent = target.toLocaleString();
         }
       }, 50);
     }
-    incrementCounter();
 
-    // Show the button when scrolling down
-    window.onscroll = function() {
-        var btn = document.getElementById("backToTopBtn");
-        if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
-            btn.style.display = "block";
-        } else {
-            btn.style.display = "none";
-        }
+    // Scroll to top button
+    const backToTopBtn = document.getElementById("backToTopBtn");
+    window.onscroll = function () {
+      if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+        backToTopBtn.style.display = "block";
+      } else {
+        backToTopBtn.style.display = "none";
+      }
     };
 
-    // Scroll back to top when button is clicked
     function scrollToTop() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
-var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-  return new bootstrap.Dropdown(dropdownToggleEl)
-})
+    // Run counter animation on page load
+    window.onload = () => {
+      incrementCounter();
+    };
+  
 </script>
 
   

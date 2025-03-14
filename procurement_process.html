@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Procurement Process - LakeGas Enterprise Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="procurement-style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f6f9;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn.primary {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn.success {
+      background-color: #28a745;
+      color: white;
+    }
+    .btn.danger {
+      background-color: #dc3545;
+      color: white;
+    }
+    .inventory-summary, .procurement-flow, .transactions {
+      margin-top: 20px;
+    }
+    .inventory-card, .flow-card, .table-container {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .inventory-items, .approval-items {
+      margin-top: 10px;
+    }
+    .inventory-item, .approval-item {
+      display: flex;
+      justify-content: space-between;
+      background: #f8f9fa;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+    }
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .table-container th, .table-container td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .status.approved { color: #28a745; }
+    .status.pending-approval { color: #ffc107; }
+    .status.rejected { color: #dc3545; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top">
+      <h1>Procurement Process</h1>
+    </div>
+    <div class="inventory-summary">
+      <div class="inventory-card">
+        <h3>Current Inventory</h3>
+        <div id="inventoryList" class="inventory-items"></div>
+      </div>
+    </div>
+    <div class="procurement-flow">
+      <div class="flow-card">
+        <h3>Create Purchase Request</h3>
+        <form id="purchaseForm">
+          <label>Select Item:</label>
+          <select id="itemSelect" required></select>
+          <label>Select Supplier:</label>
+          <select id="supplierSelect" required></select>
+          <label>Quantity Needed:</label>
+          <input type="number" id="quantity" min="1" required />
+          <button type="submit" class="btn primary">Submit Request</button>
+        </form>
+      </div>
+      <div class="flow-card">
+        <h3>Pending Approvals</h3>
+        <div id="approvalList" class="approval-items"></div>
+      </div>
+    </div>
+    <div class="transactions">
+      <h2>Purchase History</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Supplier</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="purchaseHistory"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script>
+const inventory = {
+  "12kg Gas Cylinder": 50,
+  "6kg Gas Cylinder": 100
+};
+
+let pendingApprovals = [];
+let purchaseHistory = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  populateDropdown('itemSelect', Object.keys(inventory));
+  populateDropdown('supplierSelect', ["Total"]);
+  document.getElementById('purchaseForm').addEventListener('submit', handleFormSubmit);
+  updateInventoryList(); // Show initial inventory
+});
+
+function populateDropdown(id, options) {
+  const select = document.getElementById(id);
+  select.innerHTML = '<option value="">Choose...</option>' + 
+    options.map(option => `<option value="${option}">${option}</option>`).join('');
+}
+
+function updateInventoryList() {
+  const container = document.getElementById('inventoryList');
+  container.innerHTML = Object.entries(inventory).map(([item, qty]) => `
+    <div class="inventory-item">
+      <span>${item}</span>
+      <span><strong>${qty}</strong> in stock</span>
+    </div>
+  `).join('');
+}
+
+function handleFormSubmit(event) {
+  event.preventDefault();
+  const item = document.getElementById('itemSelect').value;
+  const supplier = document.getElementById('supplierSelect').value;
+  const quantity = parseInt(document.getElementById('quantity').value);
+
+  if (!item || !supplier || isNaN(quantity) || quantity <= 0) {
+    alert('Please fill all fields correctly.');
+    return;
+  }
+
+  const request = { item, supplier, quantity, id: Date.now(), status: 'Pending Approval', date: new Date().toLocaleDateString() };
+  pendingApprovals.push(request);
+  updateApprovalList();
+  document.getElementById('purchaseForm').reset();
+}
+
+function updateApprovalList() {
+  const container = document.getElementById('approvalList');
+  container.innerHTML = pendingApprovals.map(req => `
+    <div class="approval-item">
+      <span>${req.item} from ${req.supplier} (Qty: ${req.quantity})</span>
+      <button class="btn success" onclick="approveRequest(${req.id})">Approve</button>
+      <button class="btn danger" onclick="rejectRequest(${req.id})">Reject</button>
+    </div>
+  `).join('');
+}
+
+function approveRequest(id) {
+  const request = pendingApprovals.find(req => req.id === id);
+  if (request) {
+    inventory[request.item] += request.quantity; // ✅ Increase stock
+    request.status = 'Approved';
+    purchaseHistory.push(request);
+    pendingApprovals = pendingApprovals.filter(req => req.id !== id);
+    updateApprovalList();
+    updatePurchaseHistory();
+    updateInventoryList(); // ✅ Refresh inventory display
+  }
+}
+
+function rejectRequest(id) {
+  pendingApprovals = pendingApprovals.filter(req => req.id !== id);
+  updateApprovalList();
+}
+
+function updatePurchaseHistory() {
+  const tbody = document.getElementById('purchaseHistory');
+  tbody.innerHTML = purchaseHistory.map(req => `
+    <tr>
+      <td>${req.item}</td>
+      <td>${req.supplier}</td>
+      <td>${req.quantity}</td>
+      <td class="status approved">${req.status}</td>
+      <td>${req.date}</td>
+    </tr>
+  `).join('');
+}
+
+  </script>
+</body>
+</html>
